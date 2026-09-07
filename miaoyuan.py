@@ -34,7 +34,7 @@ def rgb_to_hsv_np(rgb):
     h[rmask] = ((g[rmask] - b[rmask]) / d[rmask]) % 6
     h[gmask] = ((b[gmask] - r[gmask]) / d[gmask]) + 2
     h[bmask] = ((r[bmask] - g[bmask]) / d[bmask]) + 4
-    h = h * 60.0  # degrees
+    h = h * 60.0 
     return h, s, v
 
 
