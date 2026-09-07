@@ -1,11 +1,4 @@
-"""Rough (color sketch) -> 4-color line art (miaoyuan / 描原).
 
-Palette:
-  white #FFFFFF background, black #000000 structure, blue #0000FF shadow,
-  red   #FF0000 highlight. (green #00FF00 reserved but unused here.)
-
-Pipeline per pixel: HSV classification, then morphological cleanup per channel.
-"""
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -46,18 +39,18 @@ def rgb_to_hsv_np(rgb):
 
 
 def classify(img_rgb):
-    """Return an index map: 0 white, 1 black, 2 blue, 3 red."""
+   
     h, s, v = rgb_to_hsv_np(img_rgb)
     out = np.zeros(img_rgb.shape[:2], dtype=np.uint8)  # default white
 
-    # Black: dark pixels (structure lines). Allow slightly gray anti-alias.
+   
     black = v < 0.35
-    # Red-ish: red hue and saturated. Hue near 0 or 360, exclude very pale.
+  
     red = ((h < 25) | (h > 335)) & (s > 0.45) & (v > 0.25)
-    # Blue/cyan: hue 160-260, saturated enough. Exclude pale pastel fills (need s high).
+   
     blue = (h > 160) & (h < 260) & (s > 0.35) & (v > 0.25)
 
-    # Priority: black > red > blue (structure wins where overlap)
+  
     out[blue] = 2
     out[red] = 3
     out[black] = 1
@@ -65,10 +58,10 @@ def classify(img_rgb):
 
 
 def cleanup(idx):
-    """Drop tiny isolated specks per channel, then close small gaps."""
+   
     from scipy import ndimage
     cleaned = idx.copy()
-    # small-speck removal
+   
     for label in (1, 2, 3):
         mask = idx == label
         lbl, n = ndimage.label(mask)
@@ -80,8 +73,7 @@ def cleanup(idx):
             drop = np.isin(lbl, small)
             cleaned[drop & mask] = 0
 
-    # morphological closing per channel to bridge line breaks.
-    # Priority when repainting: black > red > blue (structure wins overlaps).
+  
     struct = ndimage.generate_binary_structure(2, 2)  # 3x3
     closed_masks = {}
     for label, iters in ((2, 1), (3, 1), (1, 2)):  # black gets slightly stronger close
